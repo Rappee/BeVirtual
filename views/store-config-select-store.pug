@@ -1,0 +1,7 @@
+extends layout
+
+block content
+    h1 Select Store
+    ul
+        each store in stores
+            li: a(href='/dashboard/storeconfig/' + store.id) #{store.city}

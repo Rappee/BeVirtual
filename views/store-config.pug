@@ -1,0 +1,138 @@
+extends layout
+
+block append stylesheets
+    link(rel='stylesheet', href='/stylesheets/timetable.css')
+
+block append scripts
+    script(src='/scripts/timetable.js')
+
+mixin period-slide(closedCount)
+    div.col-md-10(class='period-slide')
+        h4 Open
+        div.date-row.d-flex
+            div.input-group.input-group-sm.mr-2
+                div.input-group-prepend
+                    span.input-group-text From
+                input.form-control(type='date')
+            div.input-group.input-group-sm.mr-2
+                div.input-group-prepend
+                    span.input-group-text Till
+                input.form-control(type='date')
+            div.d-flex.align-items-center
+                span.far.fa-trash-alt(title='delete opening period')
+        hr
+        h4 Closed
+        div.closed-period-container
+            - for(var i=0; i<closedCount; i++)
+                div.date-row.d-flex
+                    div.input-group.input-group-sm.mr-2
+                        div.input-group-prepend
+                            span.input-group-text From
+                        input.form-control(type='datetime-local')
+                    div.input-group.input-group-sm.mr-2
+                        div.input-group-prepend
+                            span.input-group-text Till
+                        input.form-control(type='datetime-local')
+                    div.d-flex.align-items-center
+                        span.far.fa-trash-alt#btn_del_closing_period(title='delete closing period')
+        button.btn.btn-sm.btn-block.btn-outline-secondary.mt-3#btn_add_closing_period(type='button') Add Closing Period
+
+mixin period-slide-add-new
+    div.col-md-10(class='period-slide period-slide-add-new',  align='center')
+        h4 Click here to add a new Period
+        span.far.fa-calendar-plus.fa-4x.mt-3.mb-3
+        p
+            | The timetable applies for all days within this period
+            br
+            | Closing days and exceptions can be added later
+
+block content
+    h1 Store Configuration
+        small.text-muted.ml-3 #{store.city}
+    //-
+        h4 Products
+        table.table.table-sm
+            col
+            thead
+                tr
+                    th(scope='col') id
+                    th(scope='col') name
+                    th(scope='col') available
+                    th(scope='col') price1
+                    th(scope='col') price2
+                    th(scope='col') price3
+                    th(scope='col') price4
+            tbody
+                tr
+                    td(scope='row') 1
+                    td 30 min
+                    td 3
+                    td N.A.
+                    td 30
+                    td 60
+                    td N.A.
+                tr
+                    td(scope='row') 2
+                    td 60 min
+                    td 3
+                    td 20
+                    td 40
+                    td 60
+                    td 80
+
+    h4 Opening hours
+    - var days = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'];
+
+    div.row
+        div.col-lg-6
+            div.card#card-periods
+                div.card-header Time Periods
+                div.card-body
+                    div.row#period-container
+                        div.col-md-1.d-flex.align-items-center
+                            span#btn_prev_slide.fas.fa-angle-left.fa-2x(title='previous opening period')
+
+                        //+period-slide(3)
+                        //+period-slide(4)
+                        //+period-slide(5)
+                        +period-slide-add-new
+
+                        div.col-md-1.d-flex.align-items-center
+                            span#btn_next_slide.fas.fa-angle-right.fa-2x(title='next opening period')
+
+
+            div.card.mt-3#card-time-table-settings
+                div.card-header Timetable controls
+                div.card-body
+                    button.btn.btn-secondary#btn_clear_table Clear Table
+                    //-
+                        form
+                            div.form-group.row
+                                label.col-3.col-form-label(for='starttime') Start at
+                                div.col-9
+                                    input.form-control#starttime(type='time', value='14:00', step='1800')
+                            div.form-group.row
+                                label.col-3.col-form-label(for='endtime') End at
+                                div.col-9
+                                    input.form-control#endtime(type='time', value='00:00', step='1800')
+
+        div.col-lg-6
+            div.card#card-time-table
+                div.card-header Timetable
+                div.card-body
+                    //-
+                        form.form-inline
+                            div.form-group.mr-5
+                                label.col-form-label.mr-3(for='period-start') Period from
+                                input.form-control#period-start(type='date')
+                            div.form-group
+                                label.col-form-label.mr-3(for='period-end') till
+                                input.form-control#period-end(type='date')
+
+                    table.table.table-sm.table-bordered.table-hover#timetable
+                        thead
+                            tr
+                                th.time-col
+                                each day in days
+                                    th.day-col #{day}
+                        tbody

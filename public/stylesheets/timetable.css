@@ -1,0 +1,65 @@
+#timetable {
+    margin: 0 auto;
+    text-align: center;
+    display: table;
+    width: 100%;
+}
+
+#timetable thead, #timetable tbody {
+    width: 100%;
+}
+
+#timetable thead {
+    overflow-y: scroll;
+    display: table;
+    table-layout: fixed;
+    width: calc(100% - 16px);
+}
+
+#timetable tbody {
+    overflow: auto;
+    height: 500px;
+    display: block;
+}
+
+#timetable tr {
+    width: 100%;
+    display: table;
+    table-layout: fixed;
+}
+
+#timetable .time-col {
+    width: 10%;
+}
+
+#timetable .day-col {
+    width: 13%;
+}
+
+#timetable td.highlighted {
+    background-color: lightblue;
+}
+
+.date-row {
+    margin: 3px auto;
+}
+
+.fa-trash-alt {
+    cursor: pointer;
+}
+
+.fa-angle-left, .fa-angle-right {
+    cursor: pointer;
+}
+
+.period-slide {
+    display:none;
+}
+
+.period-slide-add-new {
+    cursor: pointer;
+}
+
+.period-slide-add-new:hover * {
+    color: slategray;
+}

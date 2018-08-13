@@ -1,0 +1,27 @@
+/                                   homepage with general info
+/b2b                                business to business info
+/b2b/contact                        contact form for b2b
+/games                              overview of game categories
+/games/singleplayer                 list of singleplayer games
+/games/multiplayer                  list of multiplayer games
+/games/experiences                  list of VR experiences
+/games/educational                  list of educational games
+/contact                            contact form
+/reserve                            Info: reservations, pricing, gift cards, ...
+/reserve/session                    Session details for making reservation
+/reserve/checkout                   Customer details + link to payment
+
+/dashboard                          dashboard homepage
+/dashboard/customers                browse and manage customers
+/dashboard/reservations             browse and manage reservations
+/dashboard/finances                 overview of financial data
+/dashboard/cash                     for selling products in the store itself
+/dashboard/storeconfig              Select store for configuration
+/dashboard/storeconfig/:storeid     configuring products, opening hours, closing periods,... for specific store
+
+
+
+
+Admins levels:
+    Jobstudent
+        access to /dashboard

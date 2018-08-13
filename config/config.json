@@ -1,0 +1,44 @@
+{
+  "development": {
+    "username": "bevirtual",
+    "password": "letmethru",
+    "database": "bevirtual",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "define": { "timestamps": false },
+    "pool": {
+      "max": 10,
+      "min": 0,
+      "acquire": 30000,
+      "idle": 10000
+    }
+  },
+  "test": {
+    "username": "bevirtual",
+    "password": "letmethru",
+    "database": "bevirtual",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "define": { "timestamps": false },
+    "pool": {
+      "max": 10,
+      "min": 0,
+      "acquire": 30000,
+      "idle": 10000
+    }
+  },
+  "production": {
+    "username": "bevirtual",
+    "password": "letmethru",
+    "database": "bevirtual",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "define": { "timestamps": false },
+    "pool": {
+      "max": 10,
+      "min": 0,
+      "acquire": 30000,
+      "idle": 10000
+    }
+  }
+}
