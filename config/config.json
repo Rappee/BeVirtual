@@ -1,9 +1,9 @@
 {
-  "database": {
-    "name": "bevirtual",
-    "user": "bevirtual",
-    "pass": "letmethru",
-    "host": "127.0.0.1",
-    "connectionLimit": 20
-  }
+    "database": {
+        "name": "bevirtual",
+        "user": "bevirtual",
+        "pass": "letmethru",
+        "host": "127.0.0.1",
+        "connectionLimit": 20
+    }
 }
