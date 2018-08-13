@@ -129,6 +129,11 @@ block content
                                 label.col-form-label.mr-3(for='period-end') till
                                 input.form-control#period-end(type='date')
 
+                    div.no-period-msg(display='none')
+                        div.d-flex.align-items-center
+                            span.fas.fa-info-circle.fa-2x.mr-2
+                            h5 No opening period selected
+
                     table.table.table-sm.table-bordered.table-hover#timetable
                         thead
                             tr

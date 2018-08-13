@@ -6,7 +6,8 @@ var pool  = mysql.createPool({
     host    : config.database.host,
     user    : config.database.user,
     password: config.database.pass,
-    database: config.database.name
+    database: config.database.name,
+    timezone: 'Z'
 });
 
 module.exports = {

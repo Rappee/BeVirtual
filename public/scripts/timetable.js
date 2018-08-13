@@ -3,8 +3,9 @@ const dayStart = '08:00';
 const dayEnd = '23:30';
 
 var slideIndex = 0;
-var periods = [];
 var timeInterval = 30; //minutes
+
+var periodDates = [];
 
 $(document).ready(function () {
     var isMouseDown = false;
@@ -49,7 +50,7 @@ $(document).ready(function () {
     });
 
     $('.period-slide-add-new').click(function () {
-        createPeriod();
+        createNewPeriod();
     });
 
     // bind listener to container, not to dynamically created buttons
@@ -67,13 +68,20 @@ $(document).ready(function () {
 function init() {
     $.ajax({
         method: 'GET',
-        url: window.location.href + '/openinghours',
+        url: window.location.href + '/getperiods',
         success: function(data) {
             console.log("response: ", data);
+            if(data.length === 0) {
+                hideTable();
+            } else {
+                data.forEach(function (period) {
+                    periodDates.push([period.validFrom, period.validTill]);
+                    createPeriodFromData(period.validFrom, period.validTill);
+                });
+            }
+            showPeriod(0);
         }
     });
-    showSlide(slideIndex);
-    initializeTable(dayStart, dayEnd);
 }
 
 // -----------------------------------------------------------------------------------------
@@ -117,16 +125,13 @@ function clearTableCells() {
 
 function hideTable() {
     $('#timetable').css('display', 'none');
-
-    $('#card-time-table > .card-body').append(
-        $('<h3>').text('Select an opening period in the \'Time Periods\' window').css('display', 'inline').prepend(
-            $('<span>', {class: 'fas fa-info-circle fa-2x mr-3'})
-        )
-    );
+    $('#card-time-table .no-period-msg').css('display', 'block');
 }
 
 function showTable() {
     $('#timetable').css('display', 'table');
+    $('#card-time-table .no-period-msg').css('display', 'none');
+    initializeTable(dayStart, dayEnd);
 }
 
 function getTableData() {
@@ -138,11 +143,26 @@ function getTableData() {
     });
 }
 
+function fillTable(from, till) {
+    showTable();
+    $.ajax({
+        method: 'GET',
+        url: window.location.href + '/getopeninghours?from=' + from + '&till=' + till,
+        success: function(data) {
+            console.log("response: ", data);
+            data.forEach(function (block) {
+                var daynr = weekdays.indexOf(block.weekday.toLowerCase());
+                $('#timetable tbody').find('tr:contains("' + block.openFrom + '") td').eq(daynr).addClass('highlighted');
+            });
+        }
+    });
+}
+
 // -----------------------------------------------------------------------------------------
 // Period Carousel
 // -----------------------------------------------------------------------------------------
 
-function showSlide(index) {
+function showPeriod(index) {
     var slides = $('.period-slide');
 
     // 0 <= index <= slides.length - 1
@@ -153,8 +173,6 @@ function showSlide(index) {
     } else {
         slideIndex = index;
     }
-
-    console.log("Displaying period slide nr: ", slideIndex + 1, ' of ', slides.length);
 
     // show/hide prev and next buttons
     showButtons();
@@ -172,14 +190,25 @@ function showSlide(index) {
     });
 
     slides.eq(slideIndex).css('display', 'block').addClass('active-slide');
+
+    console.log("Displaying period slide nr: ", slideIndex + 1, ' of ', slides.length);
+    if($('.period-slide.active-slide').hasClass('period-slide-add-new')) {
+        console.log("New period slide");
+        hideTable();
+    } else {
+        var validFrom = $('.period-slide.active-slide').find('input#valid-from').val();
+        var validTill = $('.period-slide.active-slide').find('input#valid-till').val();
+        console.log("Period from ", validFrom, " till ", validTill);
+        fillTable(validFrom, validTill);
+    }
 }
 
 function showNextSlide() {
-    showSlide(++slideIndex);
+    showPeriod(++slideIndex);
 }
 
 function showPrevSlide() {
-    showSlide(--slideIndex);
+    showPeriod(--slideIndex);
 }
 
 function hidePrevButton() {
@@ -195,39 +224,36 @@ function showButtons() {
     $('#btn_next_slide').css('display', 'block');
 }
 
-function createPeriod() {
-    var periodSlideHtml =
-        '                                                                                                                   \
-            <div class="col-md-10 period-slide" style="display: block;">                                                    \
-                <h4>Open</h4>                                                                                               \
-                <div class="date-row d-flex">                                                                               \
-                    <div class="input-group input-group-sm mr-2">                                                           \
-                        <div class="input-group-prepend">                                                                   \
-                            <span class="input-group-text">From</span>                                                      \
-                        </div>                                                                                              \
-                        <input class="form-control" type="date">                                                            \
-                    </div>                                                                                                  \
-                    <div class="input-group input-group-sm mr-2">                                                           \
-                        <div class="input-group-prepend">                                                                   \
-                            <span class="input-group-text">Till</span>                                                      \
-                        </div><input class="form-control" type="date">                                                      \
-                    </div>                                                                                                  \
-                    <div class="d-flex align-items-center">                                                                 \
-                        <span class="far fa-trash-alt" title="delete opening period"></span>                                \
-                    </div>                                                                                                  \
-                </div>                                                                                                      \
-                <hr>                                                                                                        \
-                <h4>Closed</h4>                                                                                             \
-                <div class="closed-period-container"></div>                                                                 \
-                <button id="btn_add_closing_period" class="btn btn-sm btn-block btn-outline-secondary mt-3" type="button">Add Closing Period</button>   \
-            </div>                                                                                                          \
-        ';
-
+function createPeriodFromData(validFrom, validTill) {
     var periodSlideDOM = $(periodSlideHtml);
+
+    var validFromDate = validFrom.match(/[0-9]{4}-[0-9]{2}-[0-9]{2}/)[0];
+    var validTillDate = validTill.match(/[0-9]{4}-[0-9]{2}-[0-9]{2}/)[0];
+    periodSlideDOM.find('input#valid-from').val(validFromDate);
+    periodSlideDOM.find('input#valid-till').val(validTillDate);
+
+    $('#period-container').find('.period-slide-add-new').before(periodSlideDOM);
+
+    //var slideCount = $('.period-slide').length;
+    //showPeriod(slideCount - 2);
+}
+
+function createNewPeriod() {
+    var periodSlideDOM = $(periodSlideHtml);
+
+    var lastPeriodEnd = periodDates[periodDates.length - 1][1];
+    console.log("last period till: ", lastPeriodEnd);
+
+    var newPeriodStart = new Date(lastPeriodEnd);
+    newPeriodStart.setDate(newPeriodStart.getDate() + 1); // + 1 day
+    newPeriodStart = formatDate(newPeriodStart);
+    console.log("new period start: ", newPeriodStart);
+
+    periodSlideDOM.find('input#valid-from').val(newPeriodStart);
     $('#period-container').find('.period-slide-add-new').before(periodSlideDOM);
 
     var slideCount = $('.period-slide').length;
-    showSlide(slideCount - 2);
+    showPeriod(slideCount - 2);
 }
 
 function createClosedPeriod() {
@@ -319,3 +345,46 @@ function formatWithZero(number) {
 
     return res;
 }
+
+function formatDate(date) {
+    var d = new Date(date),
+        month = '' + (d.getMonth() + 1),
+        day = '' + d.getDate(),
+        year = d.getFullYear();
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+    return [year, month, day].join('-');
+}
+
+// -----------------------------------------------------------------------------------------
+// HTML Parts
+// -----------------------------------------------------------------------------------------
+var periodSlideHtml =
+    '                                                                                                                   \
+        <div class="col-md-10 period-slide" style="display: block;">                                                    \
+            <h4>Open</h4>                                                                                               \
+            <div class="date-row d-flex">                                                                               \
+                <div class="input-group input-group-sm mr-2">                                                           \
+                    <div class="input-group-prepend">                                                                   \
+                        <span class="input-group-text">From</span>                                                      \
+                    </div>                                                                                              \
+                    <input id="valid-from" class="form-control" type="date">                                                            \
+                </div>                                                                                                  \
+                <div class="input-group input-group-sm mr-2">                                                           \
+                    <div class="input-group-prepend">                                                                   \
+                        <span class="input-group-text">Till</span>                                                      \
+                    </div>\
+                    <input id="valid-till" class="form-control" type="date">                                                      \
+                </div>                                                                                                  \
+                <div class="d-flex align-items-center">                                                                 \
+                    <span class="far fa-trash-alt" title="delete opening period"></span>                                \
+                </div>                                                                                                  \
+            </div>                                                                                                      \
+            <hr>                                                                                                        \
+            <h4>Closed</h4>                                                                                             \
+            <div class="closed-period-container"></div>                                                                 \
+            <button id="btn_add_closing_period" class="btn btn-sm btn-block btn-outline-secondary mt-3" type="button">Add Closing Period</button>   \
+        </div>                                                                                                          \
+    ';
