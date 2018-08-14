@@ -1,4 +1,5 @@
 var connectionPool = require('./DBConnectionPool');
+var async = require('async');
 
 function query(query, params, callback) {
     connectionPool.getConnection(function (err, connection) {
@@ -33,7 +34,6 @@ function queryNoParams(query, callback) {
         connection.release();
     });
 }
-
 // -----------------------------------------------------------------------------------------
 // Queries
 // -----------------------------------------------------------------------------------------
@@ -48,11 +48,70 @@ const DB = {
     },
 
     getOpeningPeriods(storeid, callback) {
-        query("select distinct validFrom, validTill from open where StoreId = ?", [storeid], callback);
+        query("select distinct validFrom, validTill from open where StoreId = ? order by validFrom, validTill", [storeid], callback);
     },
 
     getOpeningHours(storeid, periodFrom, periodTill, callback) {
         query("select weekday, openFrom, duration from open where StoreId = ? and validFrom = ? and validTill = ?", [storeid, periodFrom, periodTill], callback);
+    },
+
+    clearOpeningHours(storeid, periodFrom, periodTill, callback) {
+        query("delete from open where StoreId=? and validFrom=? and validTill=?", [storeid, periodFrom, periodTill], callback);
+    },
+
+    setOpeningHours(storeid, periodFrom, periodTill, blocks, callback) {
+        connectionPool.getConnection(function (err, connection) {
+            if(err) {
+                connection.release();
+                throw err;
+            }
+
+            connection.beginTransaction(function (err) {
+                if(err) { throw err; }
+                // first delete current opening hours for store within period
+
+                connection.query("delete from open where StoreId=? and validFrom=? and validTill=?", [storeid, periodFrom, periodTill], function (error, results) {
+                    if (error) {
+                        return connection.rollback(function () {
+                            throw error;
+                        })
+                    }
+                    console.log(">>>   Deleted " + results.affectedRows + " rows");
+
+
+                    async.each(blocks, function (block, asyncCallback) {
+                        connection.query("insert into open (validFrom, validTill, weekday, openFrom, duration, storeId) values (?,?,?,?,?,?)"
+                            , [periodFrom, periodTill, block.weekday, block.openFrom, block.duration, storeid]
+                            , function (error, results) {
+                                if (error) {
+                                    console.log(error);
+                                    asyncCallback(error);
+                                } else {
+                                    console.log(">>>   inserted " + block.weekday + " " + block.openFrom);
+                                    asyncCallback();
+                                }
+                            });
+                    }, function (err) {
+                        if (err) {
+                            return connection.rollback(function () {
+                                throw err;
+                            });
+                        } else {
+                            connection.commit(function (err) {
+                                if (err) {
+                                    return connection.rollback(function () {
+                                        throw err;
+                                    })
+                                }
+                                console.log(">>>   Transaction Finished");
+                            });
+                        }
+                    });
+                });
+            });
+            connection.release();
+            callback();
+        });
     }
 };
 

@@ -62,6 +62,16 @@ $(document).ready(function () {
         $(this).parents('.date-row').remove();
     });
 
+    $('#period-container').on('change', 'div.active-slide input#valid-from', function () {
+        periodDates[slideIndex][0] = $(this).val();
+        console.log(periodDates);
+    });
+
+    $('#period-container').on('change', 'div.active-slide input#valid-till', function () {
+        periodDates[slideIndex][1] = $(this).val();
+        console.log(periodDates);
+    });
+
     init();
 });
 
@@ -75,7 +85,9 @@ function init() {
                 hideTable();
             } else {
                 data.forEach(function (period) {
-                    periodDates.push([period.validFrom, period.validTill]);
+                    var validFromDate = period.validFrom.match(/[0-9]{4}-[0-9]{2}-[0-9]{2}/)[0];
+                    var validTillDate = period.validTill.match(/[0-9]{4}-[0-9]{2}-[0-9]{2}/)[0];
+                    periodDates.push([validFromDate, validTillDate]);
                     createPeriodFromData(period.validFrom, period.validTill);
                 });
             }
@@ -135,16 +147,23 @@ function showTable() {
 }
 
 function getTableData() {
+    var data = [];
     $('#timetable > tbody').find('td.highlighted').each(function () {
         var time = $(this).siblings().first().text();
         var day = weekdays[ $(this).prevAll('td').length ];
 
-        console.log("Highlighted cell on ", day, " at ", time);
+        data.push({
+            weekday: day,
+            openFrom: time,
+            duration: timeInterval
+        });
     });
+    return data;
 }
 
 function fillTable(from, till) {
     showTable();
+
     $.ajax({
         method: 'GET',
         url: window.location.href + '/getopeninghours?from=' + from + '&till=' + till,
@@ -155,6 +174,22 @@ function fillTable(from, till) {
                 $('#timetable tbody').find('tr:contains("' + block.openFrom + '") td').eq(daynr).addClass('highlighted');
             });
         }
+    });
+}
+
+function saveInDatabase() {
+    var from = periodDates[slideIndex][0];
+    var till = periodDates[slideIndex][1];
+    var data = {
+        validFrom: from,
+        validTill: till,
+        blocks: getTableData()
+    }
+    $.ajax({
+        method: 'POST',
+        url: window.location.href + '/getopeninghours',
+        contentType: 'application/json',
+        data: JSON.stringify(data)
     });
 }
 

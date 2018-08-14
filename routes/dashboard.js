@@ -31,12 +31,19 @@ router.get('/storeconfig/:storeid/getperiods', function (req, res) {
     });
 });
 
-// ?from='yyyy-mm-dd'&till='yyyy-mm-dd'
+// url?from='yyyy-mm-dd'&till='yyyy-mm-dd'
 router.get('/storeconfig/:storeid/getopeninghours', function (req, res) {
-    console.log(req.query.from, req.query.till);
     db.getOpeningHours(req.params.storeid, req.query.from, req.query.till, function (err, data) {
         if(err) { console.log(err); }
         res.send(data);
+    });
+});
+
+router.post('/storeconfig/:storeid/getopeninghours', function (req, res) {
+    console.log(req.body);
+    db.setOpeningHours(req.params.storeid, req.body.validFrom, req.body.validTill, req.body.blocks, function (err, data) {
+        if(err) { console.log(err); }
+        res.send("ok");
     });
 });
 
