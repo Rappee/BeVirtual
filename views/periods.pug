@@ -1,0 +1,42 @@
+extends layout
+
+mixin period-slide
+    div.period-slide
+        div.d-flex
+            div.input-group.input-group-sm.mr-2
+                div.input-group-prepend
+                    span.input-group-text From
+                input.form-control(type='date')
+            div.input-group.input-group-sm.mr-2
+                div.input-group-prepend
+                    span.input-group-text Till
+                input.form-control(type='date')
+            div.d-flex.align-items-center
+                span.far.fa-trash-alt(title='delete opening period')
+
+block append stylesheets
+    link(rel='stylesheet', href='/stylesheets/periods.css')
+
+block append scripts
+    script(src='/scripts/periods.js')
+
+block content
+    - var days = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'];
+
+    h1 Store Configuration
+        small.text-muted.ml-3 #{store.city}
+
+    div.period-slides-container
+        span#btn_prev.fas.fa-angle-left.fa-2x(title='previous period')
+        span#btn_next.fas.fa-angle-right.fa-2x(title='next period')
+        span#btn_create.fas.fa-plus.fa-2x(title='create next period')
+        //+period-slide
+        //+period-slide
+
+    table.table.table-sm.table-bordered.table-hover.mt-3#timetable
+        thead
+            tr
+                th.time-col
+                each day in days
+                    th.day-col #{day}
+        tbody

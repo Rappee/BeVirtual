@@ -112,6 +112,18 @@ const DB = {
             connection.release();
             callback();
         });
+    },
+
+    setTillWhereFrom(storeid, till, from, callback) {
+        query("update open set validTill=? where validFrom=? and StoreId=?", [till, from, storeid], callback);
+    },
+
+    setFromWhereTill(storeid, till, from, callback) {
+        query("update open set validFrom=? where validTill=? and StoreId=?", [from, till, storeid], callback);
+    },
+
+    deletePeriod(storeid, till, from, callback) {
+        query("delete from open where validFrom=? and validTill=? and StoreId=?", [from, till, storeid], callback);
     }
 };
 
