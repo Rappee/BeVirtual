@@ -1,3 +1,8 @@
+.centered {
+    float: none;
+    margin: 0 auto;
+}
+
 input::-webkit-inner-spin-button { display: none; }
 input::-webkit-clear-button { display: none; }
 
@@ -6,15 +11,12 @@ input::-webkit-clear-button { display: none; }
     justify-content: center;
 }
 
-
-
 .period-slides-container #btn_next {
     order: 1;
 }
 .period-slides-container #btn_create {
     order: 1;
 }
-
 
 .period-slides-container .period-slide {
     margin: auto 20px;
@@ -25,12 +27,16 @@ input::-webkit-clear-button { display: none; }
 }
 
 
+.timetable-container {
+    width: 60%;
+    margin: 0 auto;
+}
 
 #timetable {
     margin: auto auto;
     text-align: center;
     display: table;
-    width: 60%;
+    width: 100%;
 }
 
 #timetable thead, #timetable tbody {

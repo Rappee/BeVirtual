@@ -1,6 +1,7 @@
 const weekdays = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'];
 const dayStart = '08:00';
 const dayEnd   = '23:30';
+const timeInterval = 30;
 const storeId = window.location.pathname.match(/\/([0-9]+)\/?/)[1];
 
 let currPeriod;
@@ -8,13 +9,21 @@ let periodDates = [];
 
 let isMouseDown = false;
 let highlightToggle;
+let saveEnabled = false;
 
 
 $(document).ready(function () {
     console.log("Store ID: ", storeId);
 
     $('.period-slides-container #btn_next').click(function () {
-        showNextPeriod();
+        if(saveEnabled) {
+            let msg = 'You have made some unsaved changes in the timetable!\nBy clicking OK, changes made will be lost.';
+            if (confirm(msg)) {
+                showNextPeriod();
+            }
+        } else {
+            showNextPeriod();
+        }
     });
 
     $('.period-slides-container #btn_prev').click(function () {
@@ -23,16 +32,48 @@ $(document).ready(function () {
 
     $('.period-slides-container #btn_create').click(function () {
         if(periodDates.length === 0) {
-
+            // uhm
         } else {
-            let last = periodDates[periodDates.length - 1].till;
-            let from = new Date(last);
-            let till = new Date(last);
+            if(saveEnabled) {
+                let msg = 'You have made some unsaved changes in the timetable!\nBy clicking OK, changes made will be lost.';
+                if (confirm(msg)) {
+                    createExtendingPeriod();
+                }
+            } else {
+                createExtendingPeriod();
+            }
+        }
+    });
 
-            from.setDate(last.getDate() + 1);
-            till.setFullYear(last.getFullYear() + 1);
-            createPeriod(from, till);
-            showPeriod(periodDates.length - 1);
+    $('button#btn_save').click(function () {
+        saveInDatabase();
+    });
+
+    $('.period-slides-container').on('click', 'span#btn_delete', function () {
+        let from = formatDate(periodDates[currPeriod].from);
+        let till = formatDate(periodDates[currPeriod].till);
+        let prevFrom = formatDate(periodDates[currPeriod-1].from);
+        let msg = 'Deleting this period will extend the previous period till ' + till;
+        if(confirm(msg)) {
+            let tillDate = periodDates[currPeriod].till;
+            DataBase.deletePeriod(from, till);
+            periodDates.splice(currPeriod, 1);
+            removePeriodDom(currPeriod);
+
+            currPeriod--;
+            DataBase.setTillWhereFrom(till, prevFrom);
+            periodDates[currPeriod].till = tillDate;
+            updatePeriodsDom();
+            showPeriod(currPeriod);
+        }
+    });
+
+    $(window).on('beforeunload', function () {
+        if(saveEnabled) {
+            let msg = "You have some unsaved changes in the current timetable!\n Are you sure you want to leave the page?";
+            if(!confirm(msg)) {
+                return null;
+            }
         }
     });
 
@@ -60,7 +101,6 @@ $(document).ready(function () {
                         // delete overlapped period
                         console.log("[SQL] delete from open where validFrom='" + formatDate(periodDates[i].from) + "' and validTill='" + formatDate(periodDates[i].till) + "'");
                         DataBase.deletePeriod(formatDate(periodDates[i].from), formatDate(periodDates[i].till));
-
                         periodDates.splice(i, 1);
                         removePeriodDom(i);
 
@@ -109,6 +149,7 @@ $(document).ready(function () {
                 highlightToggle = true;
             else
                 highlightToggle = false;
+            enableSaving();
             return false; //prevent text selection
         })
         .on('mouseover', 'td', function () {
@@ -169,6 +210,17 @@ function createPeriod(fromDate, tillDate) {
         showDeleteButton();
 }
 
+function createExtendingPeriod() {
+    let last = periodDates[periodDates.length - 1].till;
+    let from = new Date(last);
+    let till = new Date(last);
+
+    from.setDate(last.getDate() + 1);
+    till.setFullYear(last.getFullYear() + 1);
+    createPeriod(from, till);
+    showPeriod(periodDates.length - 1);
+}
+
 function removePeriodDom(index) {
     $('.period-slide').eq(index).remove();
 
@@ -184,7 +236,13 @@ function showPeriod(index) {
         return;
     }
 
-    index === 0 ? hidePrevButton() : showPrevButton();
+    if(index === 0) {
+        hidePrevButton();
+        hideDeleteButton();
+    } else {
+        showPrevButton();
+        showDeleteButton();
+    }
     index === periodDates.length - 1 ? showCreateButton() : showNextButton();
 
     currPeriod = index;
@@ -195,6 +253,7 @@ function showPeriod(index) {
 
     clearTableCells();
     fillTable(periodDates[currPeriod].from, periodDates[currPeriod].till);
+    disableSaving();
 }
 
 function showNextPeriod() { showPeriod(currPeriod+1); }
@@ -235,9 +294,16 @@ function updatePeriodsDom() {
     }
 }
 
-function DBUpdateTill() {
-
+function enableSaving() {
+    saveEnabled = true;
+    $('button#btn_save').prop('disabled', false);
 }
+
+function disableSaving() {
+    saveEnabled = false;
+    $('button#btn_save').prop('disabled', true);
+}
+
 // -----------------------------------------------------------------------------------------
 // Timetable
 // -----------------------------------------------------------------------------------------
@@ -310,8 +376,8 @@ function fillTable(from, till) {
 }
 
 function saveInDatabase() {
-    let from = periodDates[slideIndex][0];
-    let till = periodDates[slideIndex][1];
+    let from = formatDate(periodDates[currPeriod].from);
+    let till = formatDate(periodDates[currPeriod].till);
     let data = {
         validFrom: from,
         validTill: till,
@@ -320,9 +386,12 @@ function saveInDatabase() {
 
     $.ajax({
         method: 'POST',
-        url: window.location.href + '/openinghours',
+        url: '/dashboard/storeconfig/' + storeId + '/openinghours',
         contentType: 'application/json',
-        data: JSON.stringify(data)
+        data: JSON.stringify(data),
+        success: function () {
+            disableSaving();
+        }
     });
 }
 
