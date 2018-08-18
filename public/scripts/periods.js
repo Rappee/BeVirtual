@@ -3,6 +3,7 @@ const dayStart = '08:00';
 const dayEnd   = '23:30';
 const timeInterval = 30;
 const storeId = window.location.pathname.match(/\/([0-9]+)\/?/)[1];
+const dataUrl = '/dashboard/storeconfig/' + storeId + '/data';
 
 let currPeriod;
 let periodDates = [];
@@ -179,7 +180,7 @@ $(document).ready(function () {
 function loadPeriods() {
     $.ajax({
         method: 'GET',
-        url: '/dashboard/storeconfig/' + storeId + '/getperiods',
+        url: dataUrl + '/periods',
         success: function(data) {
             if(data.length === 0) {
                 console.log("No periods in database")
@@ -364,7 +365,8 @@ function fillTable(from, till) {
 
     $.ajax({
         method: 'GET',
-        url: '/dashboard/storeconfig/' + storeId + '/openinghours?from=' + fromString + '&till=' + tillString,
+        url: dataUrl + '/openinghours',
+        data: {from: fromString, till: tillString},
         success: function(data) {
             console.log("response: ", data);
             data.forEach(function (block) {
@@ -386,7 +388,7 @@ function saveInDatabase() {
 
     $.ajax({
         method: 'POST',
-        url: '/dashboard/storeconfig/' + storeId + '/openinghours',
+        url: dataUrl + '/openinghours',
         contentType: 'application/json',
         data: JSON.stringify(data),
         success: function () {
@@ -451,7 +453,7 @@ var DataBase = {
     setTillWhereFrom: function (till, from) {
         $.ajax({
             method: 'POST',
-            url: '/dashboard/storeconfig/' + storeId + '/period/update',
+            url: dataUrl + '/period',
             data: {set: "till", till: till, from: from},
             success: function () {
                 console.log("set till where from successful")
@@ -461,7 +463,7 @@ var DataBase = {
     setFromWhereTill: function (from, till) {
         $.ajax({
             method: 'POST',
-            url: '/dashboard/storeconfig/' + storeId + '/period/update',
+            url: dataUrl + '/period',
             data: {set: "from", till: till, from: from},
             success: function () {
                 console.log("set from where till successful")
@@ -470,8 +472,8 @@ var DataBase = {
     },
     deletePeriod: function (from, till) {
         $.ajax({
-            method: 'POST',
-            url: '/dashboard/storeconfig/' + storeId + '/period/delete',
+            method: 'DELETE',
+            url: dataUrl + '/period',
             data: {till: till, from: from},
             success: function () {
                 console.log("delete period successful")
@@ -479,6 +481,7 @@ var DataBase = {
         });
     }
 };
+
 
 // -----------------------------------------------------------------------------------------
 // HTML Elements
