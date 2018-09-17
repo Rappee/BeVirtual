@@ -1,0 +1,77 @@
+extends layout
+
+mixin productRow(name)
+    tr
+        td: input(type="checkbox")
+        td #{name}
+        td
+            button.btn.btn-primary(type="button", data-toggle="modal", data-target="#productModal", aria-hidden="true") edit
+            button.btn.btn-danger delete
+
+block append scripts
+    script(src='/scripts/products.js')
+
+block append stylesheets
+    link(rel='stylesheet', href='/stylesheets/products.css')
+
+block content
+    h1 Store Configuration
+        small.text-muted.ml-3 #{store.city}
+
+    div.table-wrapper
+        div.table-title
+            div.row
+                div.col-md-6
+                    h2: b Products
+                div.col-md-6
+                    button.btn.btn-success#btn_new Add New Product
+
+        table.table.table-striped.table-hover#productTable
+            thead
+                tr
+                    th.col-check: input(type="checkbox")
+                    th.col-name name
+                    th.col-action action
+            tbody
+                //+productRow("product 1")
+                //+productRow("product 2")
+                //+productRow("product 3")
+                //+productRow("product 4")
+
+
+    div.modal.fade#productModal(role="dialog", tabindex="-1", aria-labelledby="productModalLabel", aria-hidden="true")
+        div.modal-dialog(role="document")
+            div.modal-content
+                div.modal-header
+                    h5.modal-title#productModalLabel Product name
+                    button.close(type="button", data-dismiss="modal", aria-label="Close")
+                        span(aria-hidden="true") &times;
+                div.modal-body
+                    form#productModalForm
+                        div.form-group.row
+                            label.col-6.col-form-label(for="name") Name
+                            div.col-6
+                                input.form-control#name(type="text", name="name", required="true")
+                        div.form-group.row
+                            label.col-6.col-form-label(for="duration") Duration (in blocks of 30 min)
+                            div.col-6
+                                input.form-control#duration(type="number", min="1" name="duration", required="true")
+                        div.form-group.row
+                            label.col-6.col-form-label(for="maxOverlapAtStart") Max simultanious sessions for the first block
+                            div.col-6
+                                input.form-control#maxOverlapAtStart(type="number", min="1", name="maxOverlapAtStart", required="true")
+                        div.form-group.row
+                            label.col-6.col-form-label(for="pricePerPerson") Price per Person
+                            div.col-6
+                                input.form-control#pricePerPerson(type="number", name="pricePerPerson", required="true")
+                        div.form-group.row
+                            label.col-6.col-form-label(for="minPersons") Min Persons
+                            div.col-6
+                                input.form-control#minPersons(type="number", name="minPersons", required="true")
+                        div.form-group.row
+                            label.col-6.col-form-label(for="maxPersons") Max Persons
+                            div.col-6
+                                input.form-control#maxPersons(type="number", name="maxPersons", required="true")
+                        div.modal-footer
+                            button.btn.btn-secondary(type="button", data-dismiss="modal") Cancel
+                            button.btn.btn-primary#btn_save(type="submit") Save

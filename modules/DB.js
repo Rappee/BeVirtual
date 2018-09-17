@@ -124,6 +124,30 @@ const DB = {
 
     deletePeriod(storeid, till, from, callback) {
         query("delete from open where validFrom=? and validTill=? and StoreId=?", [from, till, storeid], callback);
+    },
+
+    getProducts(storeid, callback) {
+        query("select * from products where storeid=?", storeid, callback);
+    },
+
+    getProduct(storeid, productid, callback) {
+        query("select * from products where storeid=? and id=?", [storeid, productid], callback);
+    },
+
+    addProduct(name, StoreId, duration, maxOverlapAtStart, pricePerPerson, minPersons, maxPersons, callback) {
+        query("insert into products (name, StoreId, duration, maxOverlapAtStart, pricePerPerson, minPersons, maxPersons) values (?,?,?,?,?,?,?)"
+            ,   [name, StoreId, duration, maxOverlapAtStart, pricePerPerson, minPersons, maxPersons]
+            ,   callback);
+    },
+
+    updateProduct(id, name, StoreId, duration, maxOverlapAtStart, pricePerPerson, minPersons, maxPersons, callback) {
+        query("update products set name=?, StoreId=?, duration=?, maxOverlapAtStart=?, pricePerPerson=?, minPersons=?, maxPersons=? where id=?"
+            ,   [name, StoreId, duration, maxOverlapAtStart, pricePerPerson, minPersons, maxPersons, id]
+            ,   callback);
+    },
+
+    deleteProduct(id, callback) {
+        query("delete from products where id=?", id, callback);
     }
 };
 

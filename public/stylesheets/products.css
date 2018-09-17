@@ -1,0 +1,12 @@
+table .col-check { width: 10%; }
+table .col-name { width: 70%; }
+table .col-action { width: 20%; }
+
+.table-title {
+    background: #cccccc;
+    padding: 10px;
+}
+
+.table-title button {
+    float: right;
+}
